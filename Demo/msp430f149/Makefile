@@ -7,7 +7,6 @@ PORT_PATH=../../Source/portable/GCC/MSP430
 DEMO_PATH=$(FREERTOS_ROOT)/Demo/Common/Minimal
 BSP430_PATH=../Common/drivers/MSP430/bsp430
 HAL_PATH=MSP-EXP430F5438_HAL
-CORE_PATH=F5XX_6XX_Core_Lib
 
 CC=$(CROSS_COMPILE)gcc
 LD=$(CROSS_COMPILE)ld
@@ -21,7 +20,7 @@ WARN_CFLAGS = -Wall -Wno-main
 WARN_CFLAGS += -Wno-unused-function
 OPT_LDFLAGS ?= -Wl,-gc-sections
 CPPFLAGS = -I. -I$(PORT_PATH)
-CPPFLAGS += -I$(HAL_PATH) -I$(CORE_PATH)
+CPPFLAGS += -I$(HAL_PATH)
 CPPFLAGS += -I$(SOURCE_PATH)/include
 CPPFLAGS += -I$(FREERTOS_ROOT)/Demo/Common/include
 
@@ -52,15 +51,13 @@ $(HAL_PATH)/hal_buttons.c \
 serial.c \
 main.c
 
-SRC_S = \
-RegTest.S \
 
-OBJ = $(SRC:.c=.o) $(SRC_S:.S=.o)
+OBJ = $(SRC:.c=.o)
 DEP = $(SRC:.c=.d)
 
 demo.elf: $(OBJ)
 	$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $(OBJ)
-
+	msp430-size demo.elf
 clean:
 	-rm -f $(OBJ)
 
