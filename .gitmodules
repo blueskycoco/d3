@@ -1,3 +1,0 @@
-[submodule "freertos"]
-	path = freertos
-	url = git://github.com/pabigot/freertos.git
