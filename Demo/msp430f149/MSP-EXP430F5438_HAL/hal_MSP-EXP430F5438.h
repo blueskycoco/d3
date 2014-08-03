@@ -11,18 +11,8 @@ in order to use MSP-EXP430F5438 HAL.
 
 #include "msp430.h"
 
-//#include "hal_PMM.h"
-#include "hal_UCS.h"
-
 #include "hal_lcd.h"
 #include "hal_buttons.h"
-//#include "hal_adc.h"
 #include "hal_board.h"
-//#include "hal_usb.h"
-#include "hal_buttons.h"
-//#include "hal_rf.h"
-//#include "hal_rtc.h"
-//#include "hal_tlv.h"
-#include "HAL_PMM.h"
 
 #endif /* HAL_MSP_EXP430F5438_H */

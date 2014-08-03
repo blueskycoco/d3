@@ -82,11 +82,11 @@
 #define configUSE_PREEMPTION			1
 #define configUSE_IDLE_HOOK				1
 #define configUSE_TICK_HOOK				1
-#define configCPU_CLOCK_HZ				( 25000000UL )
+#define configCPU_CLOCK_HZ				( 6000000UL )
 #define configLFXT_CLOCK_HZ       		( 32768L )
 #define configTICK_RATE_HZ				( ( portTickType ) 1000 )
 #define configMAX_PRIORITIES			( ( unsigned portBASE_TYPE ) 5 )
-#define configTOTAL_HEAP_SIZE			( ( size_t ) ( 10 * 1024 ) )
+#define configTOTAL_HEAP_SIZE			( ( size_t ) ( 2 * 1024 ) )
 #define configMAX_TASK_NAME_LEN			( 10 )
 #define configUSE_TRACE_FACILITY		0
 #define configUSE_16_BIT_TICKS			1

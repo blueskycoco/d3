@@ -151,12 +151,12 @@
 #include "hal_MSP-EXP430F5438.h"
 
 /* Standard demo includes. */
-#include "partest.h"
-#include "dynamic.h"
-#include "comtest2.h"
-#include "GenQTest.h"
-#include "TimerDemo.h"
-#include "countsem.h"
+//#include "partest.h"
+//#include "dynamic.h"
+//#include "comtest2.h"
+//#include "GenQTest.h"
+//#include "TimerDemo.h"
+//#include "countsem.h"
 
 /* Codes sent within messages to the LCD task so the LCD task can interpret
 exactly what the message it just received was.  These are sent in the
@@ -287,10 +287,10 @@ void main( void )
 	if( xLCDQueue != NULL )
 	{
 		/* Create the standard demo tasks. */
-		vAltStartComTestTasks( mainCOM_TEST_PRIORITY, mainCOM_TEST_BAUD_RATE, mainCOM_TEST_LED );
-		vStartDynamicPriorityTasks();
-		vStartGenericQueueTasks( mainGENERIC_QUEUE_TEST_PRIORITY );
-		vStartCountingSemaphoreTasks();
+	//	vAltStartComTestTasks( mainCOM_TEST_PRIORITY, mainCOM_TEST_BAUD_RATE, mainCOM_TEST_LED );
+	//	vStartDynamicPriorityTasks();
+	//	vStartGenericQueueTasks( mainGENERIC_QUEUE_TEST_PRIORITY );
+	//	vStartCountingSemaphoreTasks();
 		
 		/* Note that creating the timer test/demo tasks will fill the timer
 		command queue.  This is intentional, and forms part of the test the tasks
@@ -298,11 +298,11 @@ void main( void )
 		more timer commands can be sent until after the scheduler has been
 		started (at which point the timer daemon will drained the timer command
 		queue, freeing up space for more commands to be received). */
-		vStartTimerDemoTask( mainTIMER_TEST_PERIOD );
+	//	vStartTimerDemoTask( mainTIMER_TEST_PERIOD );
 		
 		/* Create the LCD, button poll and register test tasks, as described at
 		the top	of this	file. */
-		xTaskCreate( prvLCDTask, ( signed char * ) "LCD", configMINIMAL_STACK_SIZE * 2, mainTASK_PARAMETER_CHECK_VALUE, mainLCD_TASK_PRIORITY, NULL );
+	//	xTaskCreate( prvLCDTask, ( signed char * ) "LCD", configMINIMAL_STACK_SIZE * 2, mainTASK_PARAMETER_CHECK_VALUE, mainLCD_TASK_PRIORITY, NULL );
 		xTaskCreate( prvButtonPollTask, ( signed char * ) "BPoll", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
 		xTaskCreate( vRegTest1Task, ( signed char * ) "Reg1", configMINIMAL_STACK_SIZE, NULL, 0, NULL );
 		xTaskCreate( vRegTest2Task, ( signed char * ) "Reg2", configMINIMAL_STACK_SIZE, NULL, 0, NULL );
@@ -312,7 +312,7 @@ void main( void )
 		the reasons stated in the comments above the call to 
 		vStartTimerDemoTask(), that the check timer is not actually started 
 		until after the scheduler has been started. */
-		xCheckTimer = xTimerCreate( ( const signed char * ) "Check timer", mainCHECK_TIMER_PERIOD, pdTRUE, ( void * ) 0, vCheckTimerCallback ); 
+	//	xCheckTimer = xTimerCreate( ( const signed char * ) "Check timer", mainCHECK_TIMER_PERIOD, pdTRUE, ( void * ) 0, vCheckTimerCallback ); 
 
 		/* Start the scheduler. */
 		vTaskStartScheduler();
@@ -584,7 +584,7 @@ static void prvSetupHardware( void )
   
 	halBoardInit();
 
-	LFXT_Start( XT1DRIVE_0 );
+//	LFXT_Start( XT1DRIVE_0 );
 	hal430SetSystemClock( configCPU_CLOCK_HZ, configLFXT_CLOCK_HZ );
 
 	halButtonsInit( BUTTON_ALL );
@@ -596,11 +596,11 @@ static void prvSetupHardware( void )
 	the tick interrupt.  If the backlight is required, then change either the
 	halLCD library or vApplicationSetupTimerInterrupt() to use a different
 	timer.  Timer A1 is used for the run time stats time base6. */
-	halLcdInit();
-	halLcdSetContrast( 100 );
-	halLcdClearScreen();
+//	halLcdInit();
+//	halLcdSetContrast( 100 );
+//	halLcdClearScreen();
 	
-	halLcdPrintLine( " www.FreeRTOS.org", 0,  OVERWRITE_TEXT );
+//	halLcdPrintLine( " www.FreeRTOS.org", 0,  OVERWRITE_TEXT );
 }
 /*-----------------------------------------------------------*/
 
@@ -617,7 +617,7 @@ static unsigned long ulCounter = 0;
 	that access the same port must do so from a critical section. */
 	if( ( ulCounter & 0xff ) == 0 )
 	{
-		if( ( LED_PORT_OUT & LED_1 ) == 0 )
+/*		if( ( LED_PORT_OUT & LED_1 ) == 0 )
 		{
 			LED_PORT_OUT |= LED_1;
 		}
@@ -625,6 +625,7 @@ static unsigned long ulCounter = 0;
 		{
 			LED_PORT_OUT &= ~LED_1;
 		}
+		*/
 	}
 }
 /*-----------------------------------------------------------*/
@@ -685,6 +686,8 @@ const unsigned short usACLK_Frequency_Hz = 32768;
 }
 /*-----------------------------------------------------------*/
 
+
+
 void vApplicationIdleHook( void )
 {
 	/* Called on each iteration of the idle task.  In this case the idle task
@@ -716,5 +719,4 @@ void vApplicationStackOverflowHook( xTaskHandle pxTask, signed char *pcTaskName 
 	for( ;; );
 }
 /*-----------------------------------------------------------*/
-
 

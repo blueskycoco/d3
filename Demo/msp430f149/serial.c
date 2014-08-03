@@ -110,7 +110,7 @@ unsigned portLONG ulBaudRateCount;
 		/* Create the queues used by the com test task. */
 		xRxedChars = xQueueCreate( uxQueueLength, ( unsigned portBASE_TYPE ) sizeof( signed char ) );
 		xCharsForTx = xQueueCreate( uxQueueLength, ( unsigned portBASE_TYPE ) sizeof( signed char ) );
-
+#if 0
 		/* Reset UART. */
 		UCA1CTL1 |= UCSWRST;
 
@@ -132,6 +132,16 @@ unsigned portLONG ulBaudRateCount;
 		
 		/* Take out of reset. */
 		UCA1CTL1 &= ~UCSWRST;
+		#endif
+		P3SEL |= BIT7 + BIT6;        
+		P3DIR &= ~BIT7;              // P3.7：USCI_A1 RXD
+		P3DIR |= BIT6;               // P3.6：USCI_A1 TXD
+		UCTL1 &= ~SYNC;        // CLK = MCLK
+		UBR01 = 0X34;              // 16MHz-9600 
+		UBR11 = 0x00;              // 65+3*256=833   
+		UTCTL1 = (SSEL0 | SSEL1);// Modulation UCBRSx = 2
+		UCTL1 &= ~SWRST;        // Initialize USCI state machine
+		U1IE |= URXIE1;           // 允许接收中断
 	}
 	portEXIT_CRITICAL();
 	
@@ -164,8 +174,8 @@ signed portBASE_TYPE xReturn;
 	then enable the UART Tx interrupt, just in case UART transmission has already
 	completed and switched itself off. */
 	xReturn = xQueueSend( xCharsForTx, &cOutChar, xBlockTime );
-	UCA1IE |= UCTXIE;
-	
+	//UCA1IE |= UCTXIE;
+	U1IE |= UTXIE1;   
 	return xReturn;
 }
 /*-----------------------------------------------------------*/
@@ -177,33 +187,33 @@ of the DMA.  Or, as a minimum, transmission and reception could use a simple
 RAM ring buffer, and synchronise with a task using a semaphore when a complete
 message has been received or transmitted. */
 static void
-__attribute__((__interrupt__(USCI_A1_VECTOR)))
+__attribute__((__interrupt__(UART1RX_VECTOR)))
 prvUSCI_A1_ISR( void )
 {
 signed char cChar;
 portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
 
-	if( ( UCA1IFG & UCRXIFG ) != 0 )
+	if( ( U1IFG & URXIFG1 ) != 0 )
 	{
 		/* Get the character from the UART and post it on the queue of Rxed
 		characters. */
-		cChar = UCA1RXBUF;
+		cChar = RXBUF1;
 		xQueueSendFromISR( xRxedChars, &cChar, &xHigherPriorityTaskWoken );
 	}	
-	else if( ( UCA1IFG & UCTXIFG ) != 0 )
+	else if( ( U1IFG & UTXIFG1 ) != 0 )
 	{
 		/* The previous character has been transmitted.  See if there are any
 		further characters waiting transmission. */
 		if( xQueueReceiveFromISR( xCharsForTx, &cChar, &xHigherPriorityTaskWoken ) == pdTRUE )
 		{
 			/* There was another character queued - transmit it now. */
-			UCA1TXBUF = cChar;
+			TXBUF1 = cChar;
 		}
 		else
 		{
 			/* There were no other characters to transmit - disable the Tx
 			interrupt. */
-			UCA1IE &= ~UCTXIE;
+			U1IE &= ~UTXIE1;
 		}
 	}
 	

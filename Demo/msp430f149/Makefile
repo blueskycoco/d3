@@ -1,4 +1,4 @@
-MCU ?= msp430f5438a
+MCU ?= msp430f149
 CROSS_COMPILE ?= msp430-
 
 FREERTOS_ROOT=../../freertos
@@ -33,8 +33,8 @@ TARGET_FLAGS=-mmemory-model=$(MEMORY_MODEL)
 endif # MEMORY_MODEL
 endif # TARGET_FLAGS
 
-CFLAGS=-mmcu=$(MCU) $(TARGET_FLAGS) $(OPT_CFLAGS) -ggdb $(WARN_CFLAGS) $(XCFLAGS)
-LDFLAGS=-mmcu=$(MCU) $(TARGET_FLAGS) $(OPT_LDFLAGS) -ggdb
+CFLAGS=-mmcu=$(MCU) $(TARGET_FLAGS) $(OPT_CFLAGS)  $(WARN_CFLAGS) $(XCFLAGS)
+LDFLAGS=-mmcu=$(MCU) $(TARGET_FLAGS) $(OPT_LDFLAGS)
 
 # Object file derived from assembler source including preprocessor
 %.o: %.S
@@ -47,18 +47,8 @@ $(SOURCE_PATH)/list.c \
 $(SOURCE_PATH)/timers.c \
 $(SOURCE_PATH)/portable/MemMang/heap_1.c \
 $(PORT_PATH)/port.c \
-$(DEMO_PATH)/dynamic.c \
-$(DEMO_PATH)/comtest.c \
-$(DEMO_PATH)/GenQTest.c \
-$(DEMO_PATH)/TimerDemo.c \
-$(DEMO_PATH)/countsem.c \
 $(HAL_PATH)/hal_board.c \
 $(HAL_PATH)/hal_buttons.c \
-$(HAL_PATH)/hal_lcd.c \
-$(HAL_PATH)/hal_lcd_fonts.c \
-$(CORE_PATH)/HAL_PMM.c \
-$(CORE_PATH)/hal_UCS.c \
-ParTest.c \
 serial.c \
 main.c
 

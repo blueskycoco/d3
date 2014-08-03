@@ -17,7 +17,7 @@ void halButtonsInit(unsigned char buttonsMask)
 {  
   BUTTON_PORT_OUT |= buttonsMask;
   BUTTON_PORT_DIR &= ~buttonsMask;
-  BUTTON_PORT_REN |= buttonsMask; 
+ // BUTTON_PORT_REN |= buttonsMask; 
   BUTTON_PORT_SEL &= ~buttonsMask;       
 }
 
