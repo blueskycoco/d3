@@ -32,8 +32,8 @@ TARGET_FLAGS=-mmemory-model=$(MEMORY_MODEL)
 endif # MEMORY_MODEL
 endif # TARGET_FLAGS
 
-CFLAGS=-mmcu=$(MCU) $(TARGET_FLAGS) $(OPT_CFLAGS)  $(WARN_CFLAGS) $(XCFLAGS)
-LDFLAGS=-mmcu=$(MCU) $(TARGET_FLAGS) $(OPT_LDFLAGS)
+CFLAGS=-mmcu=$(MCU) $(TARGET_FLAGS) $(OPT_CFLAGS) -ggdb $(WARN_CFLAGS) $(XCFLAGS)
+LDFLAGS=-mmcu=$(MCU) $(TARGET_FLAGS) $(OPT_LDFLAGS) -ggdb
 
 # Object file derived from assembler source including preprocessor
 %.o: %.S
