@@ -41,6 +41,6 @@ extern volatile unsigned char buttonsPressed;
  *                  Function Prototypes 
  * ------------------------------------------------------------*/ 
 extern void halButtonsInit();
-extern unsigned char halButtonsPressed(void);
+extern unsigned short halButtonsPressed(void);
 
 #endif /* HAL_BUTTONS_H */

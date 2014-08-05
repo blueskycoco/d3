@@ -18,19 +18,19 @@ void halBoardInit(void)
 {
   //Tie unused ports
   P1OUT  = 0;
-  P1DIR  = 0xFFFF;
+  P1DIR  = 0xFF;
   P1SEL  = 0;
   P2OUT  = 0;
-  P2DIR  = 0xFFFF;
+  P2DIR  = 0xFF;
   P2SEL  = 0;
   P3OUT  = 0;
-  P3DIR  = 0xFFFF;
+  P3DIR  = 0xFF;
   P3SEL  = 0;
   P4OUT  = 0;
-  P4DIR  = 0xFFFF;
-  P4SEL  = 0x0003;
+  P4DIR  = 0xf0;
+  P4SEL  = 0x00;
   P5OUT  = 0;
-  P5DIR  = 0xFEFF;                        
+  P5DIR  = 0xFF;                        
   P5SEL  = 0;
   P6OUT = 0;
   P6DIR = 0xFF;

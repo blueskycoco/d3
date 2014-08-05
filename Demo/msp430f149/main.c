@@ -358,14 +358,17 @@ unsigned char ucLine = 1;
 	vTaskDelay( mainTIMER_TEST_PERIOD * 10 );
 	sprintf( cBuffer, "%d heap free", ( int ) xPortGetFreeHeapSize() );
 	//halLcdPrintLine( cBuffer, ucLine, OVERWRITE_TEXT );
+	printf("%s\r\n",cBuffer);
 	ucLine++;
 	
 	sprintf( cBuffer, "MSPGCC %lu", ( unsigned long ) __MSPGCC__ );
 	//halLcdPrintLine( cBuffer, ucLine, OVERWRITE_TEXT );
+	printf("%s\r\n",cBuffer);
 	ucLine++;
 
 #if __MSP430X__ & (__MSP430_CPUX_TARGET_SR20__ | __MSP430_CPUX_TARGET_ISR20__)
 	//halLcdPrintLine( "++with 20-bit++", ucLine, OVERWRITE_TEXT );
+	printf("++with 20-bit++\r\n");
 	ucLine++;
 
 	sprintf( cBuffer, "ma%02d mc%02d md%02d",
@@ -388,6 +391,7 @@ unsigned char ucLine = 1;
 #endif /* -md20 */
 			 );
 //	halLcdPrintLine( cBuffer, ucLine, OVERWRITE_TEXT );
+printf("%s\r\n",cBuffer);
 	ucLine++;
 #endif /* -msr20 */
 
@@ -396,12 +400,13 @@ unsigned char ucLine = 1;
 	if( pvParameters != mainTASK_PARAMETER_CHECK_VALUE )
 	{
 //		halLcdPrintLine( "Invalid parameter", ucLine, OVERWRITE_TEXT );
+printf("Invalid parameter\r\n");
 		ucLine++;		
 	}
 
 	for( ;; )
 	{
-		TXBUF0='l';
+		printf("prvLCDTask \r\n");
 		/* Wait for a message to be received.  Using portMAX_DELAY as the block
 		time will result in an indefinite wait provided INCLUDE_vTaskSuspend is
 		set to 1 in FreeRTOSConfig.h, therefore there is no need to check the
@@ -454,6 +459,7 @@ unsigned char ucLine = 1;
 		switch statement above, then move onto the next line ready for the next
 		message to arrive on the queue. */
 	//	halLcdPrintLine( cBuffer, ucLine,  OVERWRITE_TEXT );
+		printf("%s\r\n",cBuffer);
 		ucLine++;
 	}
 }
@@ -487,16 +493,17 @@ static void prvGenerateStatusMessage( char *pcBuffer, unsigned long ulStatusValu
 
 static void prvButtonPollTask( void *pvParameters )
 {
-unsigned char ucLastState = pdFALSE, ucState;
+unsigned short ucLastState = pdFALSE, ucState;
 xQueueMessage xMessage;
 
 	/* This tasks performs the button polling functionality as described at the
 	top of this file. */
 	for( ;; )
 	{
-		TXBUF0='b';
+		
+		printf("prvButtonPollTask\r\n");
 		/* Check the button state. */
-		ucState = ( halButtonsPressed() & BUTTON_UP );
+		ucState = halButtonsPressed();//( halButtonsPressed() & BUTTON_UP );
 		
 		if( ucState != 0 )
 		{
@@ -610,7 +617,7 @@ static void prvSetupHardware( void )
 	
 	xSerialPortInitMinimal(115200, comBUFFER_LEN );
 	
-	//	printf("we are in main\r\n");
+	printf("we are in main\r\n");
 	//printf("we are in main\r\n");
 	//halLcdPrintLine( " www.FreeRTOS.org", 0,  OVERWRITE_TEXT );
 	#else

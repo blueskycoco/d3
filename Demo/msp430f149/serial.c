@@ -84,22 +84,9 @@
 
 /* Demo application includes. */
 #include "serial.h"
-#include "stdarg.h"
-
-/* Misc. constants. */
-#define serNO_BLOCK				( ( portTickType ) 0 )
-signed char g_tx;
-/* The queue used to hold received characters. */
-static xQueueHandle xRxedChars;
-
-/* The queue used to hold characters waiting transmission. */
-static xQueueHandle xCharsForTx;
-
-/*-----------------------------------------------------------*/
-
 xComPortHandle xSerialPortInitMinimal( unsigned portLONG ulWantedBaud, unsigned portBASE_TYPE uxQueueLength )
 {
-unsigned portLONG ulBaudRateCount;
+	unsigned portLONG ulBaudRateCount;
 
 	/* Initialise the hardware. */
 
@@ -108,10 +95,6 @@ unsigned portLONG ulBaudRateCount;
 
 	portENTER_CRITICAL();
 	{
-		/* Create the queues used by the com test task. */
-		xRxedChars = xQueueCreate( uxQueueLength, ( unsigned portBASE_TYPE ) sizeof( signed char ) );
-		xCharsForTx = xQueueCreate( uxQueueLength, ( unsigned portBASE_TYPE ) sizeof( signed char ) );
-
 		U0ME |= UTXE0 + URXE0; 
 		UCTL0 |= CHAR;        // 8-bit character
 		UTCTL0 |= (SSEL1+SSEL0);	// UCLK = MCLK
@@ -124,40 +107,11 @@ unsigned portLONG ulBaudRateCount;
 		U0IE |= URXIE0;           // 允许接收中断
 	}
 	portEXIT_CRITICAL();
-	/* Note the comments at the top of this file about this not being a generic
-	UART driver. */
 	
 	return NULL;
 }
 /*-----------------------------------------------------------*/
 
-signed portBASE_TYPE xSerialGetChar( xComPortHandle pxPort, signed portCHAR *pcRxedChar, portTickType xBlockTime )
-{
-	/* Get the next character from the buffer.  Return false if no characters
-	are available, or arrive before xBlockTime expires. */
-	if( xQueueReceive( xRxedChars, pcRxedChar, xBlockTime ) )
-	{
-		return pdTRUE;
-	}
-	else
-	{
-		return pdFALSE;
-	}
-}
-/*-----------------------------------------------------------*/
-
-signed portBASE_TYPE xSerialPutChar( xComPortHandle pxPort, signed portCHAR cOutChar, portTickType xBlockTime )
-{
-signed portBASE_TYPE xReturn;
-
-	/* Send the next character to the queue of characters waiting transmission,
-	then enable the UART Tx interrupt, just in case UART transmission has already
-	completed and switched itself off. */
-	xReturn = xQueueSend( xCharsForTx, &cOutChar, xBlockTime );
-	U0IE |= UTXIE0;   
-	return xReturn;
-}
-/*-----------------------------------------------------------*/
 
 /* The implementation of this interrupt is provided to demonstrate the use
 of queues from inside an interrupt service routine.  It is *not* intended to
@@ -177,7 +131,10 @@ portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
 		/* Get the character from the UART and post it on the queue of Rxed
 		characters. */
 		cChar = RXBUF0;
-		xQueueSendFromISR( xRxedChars, &cChar, &xHigherPriorityTaskWoken );
+		//putchar(cChar);
+		TXBUF0 = cChar;
+		//xSerialPutChar(NULL,cChar,serNO_BLOCK);
+		//xQueueSendFromISR( xRxedChars, &cChar, &xHigherPriorityTaskWoken );
 	}	
 	__bic_SR_register_on_exit( SCG1 + SCG0 + OSCOFF + CPUOFF );
 	
@@ -190,143 +147,8 @@ portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
 	THIS MUST BE THE LAST THING DONE IN THE ISR. */	
 	portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
 }
-static void
-__attribute__((__interrupt__(UART0TX_VECTOR)))
-prvUSCI_A2_ISR( void )
-{
-signed char cChar;
-portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
-	if( ( U0IFG & UTXIFG0 ) != 0 )
-	{
-		/* The previous character has been transmitted.  See if there are any
-		further characters waiting transmission. */
-		if( xQueueReceiveFromISR( xCharsForTx, &cChar, &xHigherPriorityTaskWoken ) == pdTRUE )
-		{
-			/* There was another character queued - transmit it now. */
-			TXBUF0 = cChar;
-		}
-		else
-		{
-			/* There were no other characters to transmit - disable the Tx
-			interrupt. */
-			U0IE &= ~UTXIE0;
-		}
+void putchar(unsigned b) {
+	while (!( U0IFG & UTXIFG0 ));			// USCI_A0 TX buffer ready?
+	TXBUF0 = b;
 	}
-	
-	__bic_SR_register_on_exit( SCG1 + SCG0 + OSCOFF + CPUOFF );
-	
-	/* If writing to a queue caused a task to unblock, and the unblocked task
-	has a priority equal to or above the task that this interrupt interrupted,
-	then lHigherPriorityTaskWoken will have been set to pdTRUE internally within
-	xQueuesendFromISR(), and portEND_SWITCHING_ISR() will ensure that this
-	interrupt returns directly to the higher priority unblocked task. 
-	
-	THIS MUST BE THE LAST THING DONE IN THE ISR. */	
-	portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
-}
 
-/**
- * puts() is used by printf() to display or send a string.. This function
- *     determines where printf prints to. For this case it sends a string
- *     out over UART, another option could be to display the string on an
- *     LCD display.
- **/
-void puts(char *s) {
-	char c;
-
-	// Loops through each character in string 's'
-	while (c = *s++) {
-		xSerialPutChar(NULL,c,serNO_BLOCK);
-		
-	}
-}
-/**
- * puts() is used by printf() to display or send a character. This function
- *     determines where printf prints to. For this case it sends a character
- *     out over UART.
- **/
-void putc(unsigned b) {
-	xSerialPutChar(NULL,b,serNO_BLOCK);
-}
-static const unsigned long dv[] = {
-//  4294967296      // 32 bit unsigned max
-		1000000000,// +0
-		100000000, // +1
-		10000000, // +2
-		1000000, // +3
-		100000, // +4
-//       65535      // 16 bit unsigned max
-		10000, // +5
-		1000, // +6
-		100, // +7
-		10, // +8
-		1, // +9
-		};
-
-static void xtoa(unsigned long x, const unsigned long *dp) {
-	char c;
-	unsigned long d;
-	if (x) {
-		while (x < *dp)
-			++dp;
-		do {
-			d = *dp++;
-			c = '0';
-			while (x >= d)
-				++c, x -= d;
-			putc(c);
-		} while (!(d & 1));
-	} else
-		putc('0');
-}
-
-static void puth(unsigned n) {
-	static const char hex[16] = { '0', '1', '2', '3', '4', '5', '6', '7', '8',
-			'9', 'A', 'B', 'C', 'D', 'E', 'F' };
-	putc(hex[n & 15]);
-}
-
-void printf(char *format, ...)
-{
-	char c;
-	int i;
-	long n;
-
-	va_list a;
-	va_start(a, format);
-	while(c = *format++) {
-		if(c == '%') {
-			switch(c = *format++) {
-				case 's': // String
-					puts(va_arg(a, char*));
-					break;
-				case 'c':// Char
-					putc(va_arg(a, char));
-				break;
-				case 'i':// 16 bit Integer
-				case 'u':// 16 bit Unsigned
-					i = va_arg(a, int);
-					if(c == 'i' && i < 0) i = -i, putc('-');
-					xtoa((unsigned)i, dv + 5);
-				break;
-				case 'l':// 32 bit Long
-				case 'n':// 32 bit uNsigned loNg
-					n = va_arg(a, long);
-					if(c == 'l' && n < 0) n = -n, putc('-');
-					xtoa((unsigned long)n, dv);
-				break;
-				case 'x':// 16 bit heXadecimal
-					i = va_arg(a, int);
-					puth(i >> 12);
-					puth(i >> 8);
-					puth(i >> 4);
-					puth(i);
-				break;
-				case 0: return;
-				default: goto bad_fmt;
-			}
-		} else
-			bad_fmt: putc(c);
-	}
-	va_end(a);
-}
