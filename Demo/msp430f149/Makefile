@@ -65,7 +65,7 @@ realclean: clean
 	-rm -f demo.elf $(DEP)
 
 install: demo.elf
-	mspdebug -j uif 'prog demo.elf'
+	mspdebug tilib -d COM19 'prog demo.elf'
 
 %.d: %.c
 	@set -e; rm -f $@; \
