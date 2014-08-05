@@ -18,16 +18,16 @@
 #define ABS(n)     (((n) < 0) ? -(n) : (n))
 #endif
 
-#define LCD_BACKLT_OUT      P8OUT
-#define LCD_BACKLT_DIR      P8DIR
-#define LCD_BACKLT_SEL      P8SEL
+#define LCD_BACKLT_OUT      P1OUT
+#define LCD_BACKLT_DIR      P1DIR
+#define LCD_BACKLT_SEL      P1SEL
 #define LCD_BACKLIGHT_PIN   BIT3
-#define LCD_CS_RST_DIR      P9DIR
-#define LCD_CS_RST_OUT      P9OUT  
+#define LCD_CS_RST_DIR      P2DIR
+#define LCD_CS_RST_OUT      P2OUT  
 #define LCD_CS_PIN          BIT6 
 #define LCD_RESET_PIN       BIT7
-#define LCD_SPI_SEL			P9SEL
-#define LCD_SPI_DIR			P9DIR
+#define LCD_SPI_SEL			P3SEL
+#define LCD_SPI_DIR			P3DIR
 #define LCD_MOSI_PIN		BIT1
 #define	LCD_MISO_PIN		BIT2
 #define LCD_CLK_PIN   		BIT3

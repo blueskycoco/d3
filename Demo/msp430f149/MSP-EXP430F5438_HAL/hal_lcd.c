@@ -57,17 +57,17 @@ void halLcdSendCommand(unsigned char Data[])
   LCD_CS_RST_OUT &= ~LCD_CS_PIN;            //CS = 0 --> Start Transfer
   for ( i = 0; i < 6; i++ )
   {
-    while (!(UCB2IFG & UCTXIFG));           // Wait for TXIFG
-    UCB2TXBUF = Data[i];                    // Load data
+    //while (!(UCB2IFG & UCTXIFG));           // Wait for TXIFG
+    //UCB2TXBUF = Data[i];                    // Load data
 
     if (i == 2)                             //Pull CS up after 3 bytes
     {
-      while (UCB2STAT & UCBUSY);    	
+      //while (UCB2STAT & UCBUSY);    	
       LCD_CS_RST_OUT |= LCD_CS_PIN;         //CS = 1 --> Stop Transfer
       LCD_CS_RST_OUT &= ~LCD_CS_PIN;        //CS = 0 --> Start Transfer	
     }
   }
-  while (UCB2STAT & UCBUSY);    	
+  //while (UCB2STAT & UCBUSY);    	
   LCD_CS_RST_OUT |= LCD_CS_PIN;             //CS = 1 --> Stop Transfer
 }
 
@@ -97,7 +97,7 @@ void halLcdInit(void)
   LCD_SPI_SEL &= ~LCD_MISO_PIN;
   LCD_SPI_DIR &= ~(LCD_MISO_PIN + LCD_MOSI_PIN);            // Pin direction controlled by module,
                                                             // Set both pins to input as default
-
+/*
   // Initialize the USCI_B2 module for SPI operation
   UCB2CTL1 = UCSWRST;                       // Hold USCI in SW reset mode while configuring it
   UCB2CTL0 = UCMST+UCSYNC+UCCKPL+UCMSB;     // 3-pin, 8-bit SPI master
@@ -106,7 +106,7 @@ void halLcdInit(void)
   UCB2BR1 = 0;
   UCB2CTL1 &= ~UCSWRST;                     // Release USCI state machine
   UCB2IFG &= ~UCRXIFG;
-
+*/
   // Wake-up the LCD as per datasheet specifications
   halLcdActive();
 
@@ -139,7 +139,7 @@ void halLcdShutDown(void)
   LCD_CS_RST_DIR |= LCD_MOSI_PIN + LCD_CLK_PIN + LCD_MISO_PIN;
   LCD_CS_RST_OUT &= ~(LCD_MOSI_PIN + LCD_CLK_PIN + LCD_MISO_PIN);
 
-  UCB2CTL0 = UCSWRST;
+ // UCB2CTL0 = UCSWRST;
 }
 
 /**********************************************************************//**
@@ -156,12 +156,12 @@ void halLcdBackLightInit(void)
   LCD_BACKLT_OUT |= LCD_BACKLIGHT_PIN;
   LCD_BACKLT_SEL |= LCD_BACKLIGHT_PIN;
 
-  TA0CCTL3 = OUTMOD_7;
-  TA0CCR3 = TA0CCR0 >> 1 ;
+ // TA0CCTL3 = OUTMOD_7;
+ // TA0CCR3 = TA0CCR0 >> 1 ;
   backlight = 8;
 
-  TA0CCR0 = 400;
-  TA0CTL = TASSEL_2+MC_1;
+//  TA0CCR0 = 400;
+//  TA0CTL = TASSEL_2+MC_1;
 }
 
 /**********************************************************************//**
@@ -190,22 +190,22 @@ void halLcdSetBackLight(unsigned char BackLightLevel)
 
   if (BackLightLevel > 0)
   {
-    TA0CCTL3 = OUTMOD_7;
-    dummy = (TA0CCR0 >> 4);
+   // TA0CCTL3 = OUTMOD_7;
+   // dummy = (TA0CCR0 >> 4);
 
     for (i = 0; i < BackLightLevel; i++)
       dutyCycle += dummy;
 
-    TA0CCR3 = dutyCycle;
+ //   TA0CCR3 = dutyCycle;
 
     // If the backlight was previously turned off, turn it on.
-    if (!backlight)
-      TA0CTL |= MC0;
+  //  if (!backlight)
+ //     TA0CTL |= MC0;
   }
   else
   {   	
-    TA0CCTL3 = 0;
-    TA0CTL &= ~MC0;
+  //  TA0CCTL3 = 0;
+  //  TA0CTL &= ~MC0;
   }
   backlight = BackLightLevel;
 }
@@ -225,8 +225,8 @@ void halLcdShutDownBackLight(void)
   LCD_BACKLT_OUT &= ~(LCD_BACKLIGHT_PIN);
   LCD_BACKLT_SEL &= ~LCD_BACKLIGHT_PIN;
 
-  TA0CCTL3 = 0;
-  TA0CTL = 0;
+ // TA0CCTL3 = 0;
+ // TA0CTL = 0;
 
   backlight = 0;
 }
@@ -431,10 +431,10 @@ int halLcdReadBlock(unsigned int Address)
   halLcdSendCommand(Read_Block_Address_Macro);
 
   LCD_CS_RST_OUT &= ~LCD_CS_PIN;              // start transfer CS=0
-  UCB2TXBUF = 0x77;                         // Transmit first character 0x77
+//  UCB2TXBUF = 0x77;                         // Transmit first character 0x77
 
-  while (!(UCB2IFG & UCTXIFG));
-  while (UCB2STAT & UCBUSY);
+ // while (!(UCB2IFG & UCTXIFG));
+ // while (UCB2STAT & UCBUSY);
 
   //Read 5 dummies values and 2 valid address data
   LCD_SPI_SEL &= ~LCD_MOSI_PIN;             //Change SPI2C Dir
@@ -442,10 +442,10 @@ int halLcdReadBlock(unsigned int Address)
 
   for (i = 0; i < 7; i ++ )
   {
-    UCB2IFG &= ~UCRXIFG;
-    UCB2TXBUF = 1;                          // load dummy byte 1 for clk
-    while (!(UCB2IFG & UCRXIFG));
-    ReadData[i] = UCB2RXBUF;
+ //   UCB2IFG &= ~UCRXIFG;
+  //  UCB2TXBUF = 1;                          // load dummy byte 1 for clk
+  //  while (!(UCB2IFG & UCRXIFG));
+  //  ReadData[i] = UCB2RXBUF;
   }
   LCD_CS_RST_OUT |= LCD_CS_PIN;              // Stop Transfer CS = 1
 
@@ -508,30 +508,30 @@ void halLcdClearScreen(void)
     LCD_CS_RST_OUT &= ~LCD_CS_PIN;            //CS = 0 --> Start Transfer
     for ( k = 0; k < 3; k++ )
     {
-      while (!(UCB2IFG & UCTXIFG));           // Wait for TXIFG
-      UCB2TXBUF = Draw_Block_Value_Macro[k];     // Load data
+      //while (!(UCB2IFG & UCTXIFG));           // Wait for TXIFG
+      //UCB2TXBUF = Draw_Block_Value_Macro[k];     // Load data
     }
-    while (UCB2STAT & UCBUSY);    	
+//    while (UCB2STAT & UCBUSY);    	
     LCD_CS_RST_OUT |= LCD_CS_PIN;         //CS = 1 --> Stop Transfer
     LCD_CS_RST_OUT &= ~LCD_CS_PIN;        //CS = 0 --> Start Transfer	
-    while (!(UCB2IFG & UCTXIFG));           // Wait for TXIFG
-    UCB2TXBUF = Draw_Block_Value_Macro[3];     // Load data
+    //while (!(UCB2IFG & UCTXIFG));           // Wait for TXIFG
+    //UCB2TXBUF = Draw_Block_Value_Macro[3];     // Load data
 
     //send blank line
     for (j=0; j < 17; j++)
     {
   	  LCD_MEM[ LcdTableAddress++ ] = 0x00;
-      while (!(UCB2IFG & UCTXIFG));       // Wait for TXIFG
-      UCB2TXBUF = 0x00;                   // Load data
-      while (!(UCB2IFG & UCTXIFG));       // Wait for TXIFG
-      UCB2TXBUF = 0x00;                   // Load data
+      //while (!(UCB2IFG & UCTXIFG));       // Wait for TXIFG
+     // UCB2TXBUF = 0x00;                   // Load data
+     // while (!(UCB2IFG & UCTXIFG));       // Wait for TXIFG
+     // UCB2TXBUF = 0x00;                   // Load data
     }
     //Clear the partially visible block at the edge of the screen
-    while (!(UCB2IFG & UCTXIFG));       // Wait for TXIFG
-      UCB2TXBUF = 0x00;                   // Load data
-    while (!(UCB2IFG & UCTXIFG));       // Wait for TXIFG
-      UCB2TXBUF = 0x00;                   // Load data
-    while (UCB2STAT & UCBUSY);    	
+   // while (!(UCB2IFG & UCTXIFG));       // Wait for TXIFG
+  //    UCB2TXBUF = 0x00;                   // Load data
+   // while (!(UCB2IFG & UCTXIFG));       // Wait for TXIFG
+   //   UCB2TXBUF = 0x00;                   // Load data
+   // while (UCB2STAT & UCBUSY);    	
     LCD_CS_RST_OUT |= LCD_CS_PIN;             //CS = 1 --> Stop Transfer
 
     Current_Location += 0x20;
@@ -589,14 +589,14 @@ void halLcdDrawCurrentLine(const unsigned int *value, int Columns)
   LCD_CS_RST_OUT &= ~LCD_CS_PIN;            //CS = 0 --> Start Transfer
   for ( i = 0; i < 3; i++ )
   {
-      while (!(UCB2IFG & UCTXIFG));           // Wait for TXIFG
-      UCB2TXBUF = Draw_Block_Value_Macro[i];     // Load data
+ //     while (!(UCB2IFG & UCTXIFG));           // Wait for TXIFG
+ //     UCB2TXBUF = Draw_Block_Value_Macro[i];     // Load data
   }
-  while (UCB2STAT & UCBUSY);    	
+  //while (UCB2STAT & UCBUSY);    	
   LCD_CS_RST_OUT |= LCD_CS_PIN;         //CS = 1 --> Stop Transfer
   LCD_CS_RST_OUT &= ~LCD_CS_PIN;        //CS = 0 --> Start Transfer	
-  while (!(UCB2IFG & UCTXIFG));           // Wait for TXIFG
-  UCB2TXBUF = Draw_Block_Value_Macro[3];     // Load data
+  //while (!(UCB2IFG & UCTXIFG));           // Wait for TXIFG
+  //UCB2TXBUF = Draw_Block_Value_Macro[3];     // Load data
 
   //send the image
   for ( i = 0; i < Columns; i++ )
@@ -606,13 +606,13 @@ void halLcdDrawCurrentLine(const unsigned int *value, int Columns)
     	break;
     }
   	LCD_MEM[ LcdTableAddress++ ] = *value;
-  	while (!(UCB2IFG & UCTXIFG));           // Wait for TXIFG
-    UCB2TXBUF = (*value) >> 8;                   // Load data
-    while (!(UCB2IFG & UCTXIFG));           // Wait for TXIFG
-    UCB2TXBUF = (*value++) & 0xFF;                   // Load data
+  	//while (!(UCB2IFG & UCTXIFG));           // Wait for TXIFG
+   // UCB2TXBUF = (*value) >> 8;                   // Load data
+   // while (!(UCB2IFG & UCTXIFG));           // Wait for TXIFG
+   // UCB2TXBUF = (*value++) & 0xFF;                   // Load data
   }
 
-  while (UCB2STAT & UCBUSY);    	
+  //while (UCB2STAT & UCBUSY);    	
   LCD_CS_RST_OUT |= LCD_CS_PIN;             //CS = 1 --> Stop Transfer
 }
 
@@ -641,25 +641,25 @@ void halLcdClearImage(int Columns, int Rows, int x, int y)
     LCD_CS_RST_OUT &= ~LCD_CS_PIN;            //CS = 0 --> Start Transfer
     for ( k = 0; k < 3; k++ )
     {
-      while (!(UCB2IFG & UCTXIFG));           // Wait for TXIFG
-      UCB2TXBUF = Draw_Block_Value_Macro[k];     // Load data
+    //  while (!(UCB2IFG & UCTXIFG));           // Wait for TXIFG
+    //  UCB2TXBUF = Draw_Block_Value_Macro[k];     // Load data
     }
-    while (UCB2STAT & UCBUSY);    	
+    //while (UCB2STAT & UCBUSY);    	
     LCD_CS_RST_OUT |= LCD_CS_PIN;         //CS = 1 --> Stop Transfer
     LCD_CS_RST_OUT &= ~LCD_CS_PIN;        //CS = 0 --> Start Transfer	
-    while (!(UCB2IFG & UCTXIFG));           // Wait for TXIFG
-    UCB2TXBUF = Draw_Block_Value_Macro[3];     // Load data
+   // while (!(UCB2IFG & UCTXIFG));           // Wait for TXIFG
+   // UCB2TXBUF = Draw_Block_Value_Macro[3];     // Load data
 
     //send blank line
     for (j=0; j < Columns; j++)
     {
   	  LCD_MEM[ LcdTableAddress++ ] = 0x00;
-      while (!(UCB2IFG & UCTXIFG));       // Wait for TXIFG
-      UCB2TXBUF = 0x00;                   // Load data
-      while (!(UCB2IFG & UCTXIFG));       // Wait for TXIFG
-      UCB2TXBUF = 0x00;                   // Load data
+      //while (!(UCB2IFG & UCTXIFG));       // Wait for TXIFG
+    //  UCB2TXBUF = 0x00;                   // Load data
+     // while (!(UCB2IFG & UCTXIFG));       // Wait for TXIFG
+     // UCB2TXBUF = 0x00;                   // Load data
     }
-    while (UCB2STAT & UCBUSY);    	
+    //while (UCB2STAT & UCBUSY);    	
     LCD_CS_RST_OUT |= LCD_CS_PIN;             //CS = 1 --> Stop Transfer
 
     Current_Location += 0x20;

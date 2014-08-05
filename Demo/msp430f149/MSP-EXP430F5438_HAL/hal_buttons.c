@@ -13,12 +13,13 @@
  * 
  * @return none
  *************************************************************************/   
-void halButtonsInit(unsigned char buttonsMask)
+void halButtonsInit()
 {  
-  BUTTON_PORT_OUT |= buttonsMask;
-  BUTTON_PORT_DIR &= ~buttonsMask;
- // BUTTON_PORT_REN |= buttonsMask; 
-  BUTTON_PORT_SEL &= ~buttonsMask;       
+	BUTTON_OUTPUT_SEL &= BUTTON_OUTPUT_CONFIG_SEL;//gpio mode
+	BUTTON_INPUT_SEL &= BUTTON_INPUT_CONFIG_SEL;//gpio mode
+	BUTTON_OUTPUT_DIR |=BUTTON_OUTPUT_CONFIG_DIR;//config p3.3,2,1,0 output
+	BUTTON_INPUT_DIR &=BUTTON_INPUT_CONFIG_DIR;//config p4.3,2,1,0 input
+	BUTTON_OUTPUT_OUT &=0xf0;//output 0 to p3.3,2,1,0
 }
 
 /**********************************************************************//**
@@ -31,46 +32,7 @@ void halButtonsInit(unsigned char buttonsMask)
 unsigned char halButtonsPressed(void)
 {
   unsigned char value;
-  value = BUTTON_PORT_IN;
-  return (0xFF - value);                    //Low==ButtonPressed
+  value = BUTTON_INPUT_IN;
+  return (0xFF - value)&0x0f;                    //Low==ButtonPressed
 }
 
-/**********************************************************************//**
- * @brief  Enables button interrupt(s) with low to high transitions.
- * 
- * @param  buttonIntEnableMask The button pin(s) for which the interrupt(s) 
- *                             should be enabled.
- * 
- * @return none
- *************************************************************************/
-void halButtonsInterruptEnable(unsigned char buttonIntEnableMask)
-{
-  BUTTON_PORT_IES &= ~buttonIntEnableMask;
-  BUTTON_PORT_IFG &= ~buttonIntEnableMask;
-  BUTTON_PORT_IE |= buttonIntEnableMask;
-}
-
-/**********************************************************************//**
- * @brief  Disables button interrupts 
- * 
- * @param  buttonIntEnableMask The button pin(s) for which the interrupt(s)
- *                             should be disabled. 
- * 
- * @return none
- *************************************************************************/
-void halButtonsInterruptDisable(unsigned char buttonIntEnableMask)
-{
-  BUTTON_PORT_IE &= ~buttonIntEnableMask;
-}
-
-/**********************************************************************//**
- * @brief  Clears the button GPIO settings, disables the buttons. 
- * 
- * @param  none
- *************************************************************************/
-void halButtonsShutDown()
-{
-  //All output, outputting 0s
-  BUTTON_PORT_OUT &= ~(BUTTON_ALL);
-  BUTTON_PORT_DIR |= BUTTON_ALL;             
-}

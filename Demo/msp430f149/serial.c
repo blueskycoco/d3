@@ -84,6 +84,7 @@
 
 /* Demo application includes. */
 #include "serial.h"
+#include "stdarg.h"
 
 /* Misc. constants. */
 #define serNO_BLOCK				( ( portTickType ) 0 )
@@ -110,7 +111,7 @@ unsigned portLONG ulBaudRateCount;
 		/* Create the queues used by the com test task. */
 		xRxedChars = xQueueCreate( uxQueueLength, ( unsigned portBASE_TYPE ) sizeof( signed char ) );
 		xCharsForTx = xQueueCreate( uxQueueLength, ( unsigned portBASE_TYPE ) sizeof( signed char ) );
-#if 0
+		#if 0
 		/* Reset UART. */
 		UCA1CTL1 |= UCSWRST;
 
@@ -137,8 +138,11 @@ unsigned portLONG ulBaudRateCount;
 		P3DIR &= ~BIT7;              // P3.7：USCI_A1 RXD
 		P3DIR |= BIT6;               // P3.6：USCI_A1 TXD
 		UCTL1 &= ~SYNC;        // CLK = MCLK
-		UBR01 = 0X34;              // 16MHz-9600 
-		UBR11 = 0x00;              // 65+3*256=833   
+		//UBR01 = 0X34;              // 16MHz-9600 
+		UBR01 = ( unsigned portCHAR ) ( ulBaudRateCount & ( unsigned long ) 0xff );
+		//UBR11 = 0x00;              // 65+3*256=833   
+		ulBaudRateCount >>= 8UL;
+		UBR11 = ( unsigned portCHAR ) ( ulBaudRateCount & ( unsigned long ) 0xff );
 		UTCTL1 = (SSEL0 | SSEL1);// Modulation UCBRSx = 2
 		UCTL1 &= ~SWRST;        // Initialize USCI state machine
 		U1IE |= URXIE1;           // 允许接收中断
@@ -229,4 +233,107 @@ portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
 	portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
 }
 
+/**
+ * puts() is used by printf() to display or send a string.. This function
+ *     determines where printf prints to. For this case it sends a string
+ *     out over UART, another option could be to display the string on an
+ *     LCD display.
+ **/
+void puts(char *s) {
+	char c;
 
+	// Loops through each character in string 's'
+	while (c = *s++) {
+		xSerialPutChar(NULL,c,serNO_BLOCK);
+	}
+}
+/**
+ * puts() is used by printf() to display or send a character. This function
+ *     determines where printf prints to. For this case it sends a character
+ *     out over UART.
+ **/
+void putc(unsigned b) {
+	xSerialPutChar(NULL,b,serNO_BLOCK);
+}
+static const unsigned long dv[] = {
+//  4294967296      // 32 bit unsigned max
+		1000000000,// +0
+		100000000, // +1
+		10000000, // +2
+		1000000, // +3
+		100000, // +4
+//       65535      // 16 bit unsigned max
+		10000, // +5
+		1000, // +6
+		100, // +7
+		10, // +8
+		1, // +9
+		};
+
+static void xtoa(unsigned long x, const unsigned long *dp) {
+	char c;
+	unsigned long d;
+	if (x) {
+		while (x < *dp)
+			++dp;
+		do {
+			d = *dp++;
+			c = '0';
+			while (x >= d)
+				++c, x -= d;
+			putc(c);
+		} while (!(d & 1));
+	} else
+		putc('0');
+}
+
+static void puth(unsigned n) {
+	static const char hex[16] = { '0', '1', '2', '3', '4', '5', '6', '7', '8',
+			'9', 'A', 'B', 'C', 'D', 'E', 'F' };
+	putc(hex[n & 15]);
+}
+
+void printf(char *format, ...)
+{
+	char c;
+	int i;
+	long n;
+
+	va_list a;
+	va_start(a, format);
+	while(c = *format++) {
+		if(c == '%') {
+			switch(c = *format++) {
+				case 's': // String
+					puts(va_arg(a, char*));
+					break;
+				case 'c':// Char
+					putc(va_arg(a, char));
+				break;
+				case 'i':// 16 bit Integer
+				case 'u':// 16 bit Unsigned
+					i = va_arg(a, int);
+					if(c == 'i' && i < 0) i = -i, putc('-');
+					xtoa((unsigned)i, dv + 5);
+				break;
+				case 'l':// 32 bit Long
+				case 'n':// 32 bit uNsigned loNg
+					n = va_arg(a, long);
+					if(c == 'l' && n < 0) n = -n, putc('-');
+					xtoa((unsigned long)n, dv);
+				break;
+				case 'x':// 16 bit heXadecimal
+					i = va_arg(a, int);
+					puth(i >> 12);
+					puth(i >> 8);
+					puth(i >> 4);
+					puth(i);
+				break;
+				case 0: return;
+				default: goto bad_fmt;
+			}
+		} else
+			bad_fmt: putc(c);
+	}
+	va_end(a);
+}

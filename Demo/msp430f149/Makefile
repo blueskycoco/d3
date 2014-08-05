@@ -48,6 +48,8 @@ $(SOURCE_PATH)/portable/MemMang/heap_1.c \
 $(PORT_PATH)/port.c \
 $(HAL_PATH)/hal_board.c \
 $(HAL_PATH)/hal_buttons.c \
+$(HAL_PATH)/hal_lcd.c \
+$(HAL_PATH)/hal_lcd_fonts.c \
 serial.c \
 main.c
 

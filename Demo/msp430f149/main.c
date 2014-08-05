@@ -207,6 +207,9 @@ of this file) will call its callback function. */
 /* Misc. */
 #define mainDONT_BLOCK					( 0 )
 /*-----------------------------------------------------------*/
+#define comFIRST_BYTE				( 'A' )
+#define comLAST_BYTE				( 'X' )
+#define comBUFFER_LEN				( ( unsigned portBASE_TYPE ) ( comLAST_BYTE - comFIRST_BYTE ) + ( unsigned portBASE_TYPE ) 1 )
 
 /*
  * The reg test tasks as described at the top of this file.
@@ -277,7 +280,6 @@ void main( void )
 	/* Configure the peripherals used by this demo application.  This includes
 	configuring the joystick input select button to generate interrupts. */
 	prvSetupHardware();
-
 	/* Create the queue used by tasks and interrupts to send strings to the LCD
 	task. */
 	xLCDQueue = xQueueCreate( mainQUEUE_LENGTH, sizeof( xQueueMessage ) );
@@ -302,7 +304,7 @@ void main( void )
 		
 		/* Create the LCD, button poll and register test tasks, as described at
 		the top	of this	file. */
-	//	xTaskCreate( prvLCDTask, ( signed char * ) "LCD", configMINIMAL_STACK_SIZE * 2, mainTASK_PARAMETER_CHECK_VALUE, mainLCD_TASK_PRIORITY, NULL );
+		xTaskCreate( prvLCDTask, ( signed char * ) "LCD", configMINIMAL_STACK_SIZE * 2, mainTASK_PARAMETER_CHECK_VALUE, mainLCD_TASK_PRIORITY, NULL );
 		xTaskCreate( prvButtonPollTask, ( signed char * ) "BPoll", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
 		//xTaskCreate( vRegTest1Task, ( signed char * ) "Reg1", configMINIMAL_STACK_SIZE, NULL, 0, NULL );
 		//xTaskCreate( vRegTest2Task, ( signed char * ) "Reg2", configMINIMAL_STACK_SIZE, NULL, 0, NULL );
@@ -459,22 +461,22 @@ static void prvGenerateStatusMessage( char *pcBuffer, unsigned long ulStatusValu
 	string for output onto the LCD. */
 	switch( ulStatusValue )
 	{
-		case pdPASS						:	sprintf( pcBuffer, "Status = PASS" );
-											break;
+		case pdPASS					:	sprintf( pcBuffer, "Status = PASS" );
+									break;
 		case mainERROR_DYNAMIC_TASKS	:	sprintf( pcBuffer, "Err: Dynamic tsks" );
-											break;
-		case mainERROR_COM_TEST			:	sprintf( pcBuffer, "Err: COM test" );
-											break;
+									break;
+		case mainERROR_COM_TEST		:	sprintf( pcBuffer, "Err: COM test" );
+									break;
 		case mainERROR_GEN_QUEUE_TEST 	:	sprintf( pcBuffer, "Error: Gen Q test" );
-											break;
-		case mainERROR_REG_TEST			:	sprintf( pcBuffer, "Error: Reg test" );
-											break;
+									break;
+		case mainERROR_REG_TEST		:	sprintf( pcBuffer, "Error: Reg test" );
+									break;
 		case mainERROR_TIMER_TEST		:	sprintf( pcBuffer, "Error: Tmr test" );
-											break;
+									break;
 		case mainERROR_COUNT_SEM_TEST	:	sprintf( pcBuffer, "Error: Count sem" );
-											break;
-		default							:	sprintf( pcBuffer, "Unknown status" );
-											break;
+									break;
+		default					:	sprintf( pcBuffer, "Unknown status" );
+									break;
 	}
 }
 /*-----------------------------------------------------------*/
@@ -588,7 +590,7 @@ static void prvSetupHardware( void )
 	hal430SetSystemClock( configCPU_CLOCK_HZ, configLFXT_CLOCK_HZ );
 
 	halButtonsInit( BUTTON_ALL );
-	halButtonsInterruptEnable( BUTTON_SELECT );
+	//halButtonsInterruptEnable( BUTTON_SELECT );
 
 	/* Initialise the LCD, but note that the backlight is not used as the
 	library function uses timer A0 to modulate the backlight, and this file
@@ -596,11 +598,13 @@ static void prvSetupHardware( void )
 	the tick interrupt.  If the backlight is required, then change either the
 	halLCD library or vApplicationSetupTimerInterrupt() to use a different
 	timer.  Timer A1 is used for the run time stats time base6. */
-//	halLcdInit();
-//	halLcdSetContrast( 100 );
-//	halLcdClearScreen();
+	halLcdInit();
+	halLcdSetContrast( 100 );
+	halLcdClearScreen();
 	
-//	halLcdPrintLine( " www.FreeRTOS.org", 0,  OVERWRITE_TEXT );
+	xSerialPortInitMinimal( 115200, comBUFFER_LEN );
+	printf("we are in main\r\n");
+	halLcdPrintLine( " www.FreeRTOS.org", 0,  OVERWRITE_TEXT );
 }
 /*-----------------------------------------------------------*/
 
