@@ -88,7 +88,7 @@
 
 /* Misc. constants. */
 #define serNO_BLOCK				( ( portTickType ) 0 )
-
+signed char g_tx;
 /* The queue used to hold received characters. */
 static xQueueHandle xRxedChars;
 
@@ -111,46 +111,22 @@ unsigned portLONG ulBaudRateCount;
 		/* Create the queues used by the com test task. */
 		xRxedChars = xQueueCreate( uxQueueLength, ( unsigned portBASE_TYPE ) sizeof( signed char ) );
 		xCharsForTx = xQueueCreate( uxQueueLength, ( unsigned portBASE_TYPE ) sizeof( signed char ) );
-		#if 0
-		/* Reset UART. */
-		UCA1CTL1 |= UCSWRST;
 
-		/* Use SMCLK. */
-		UCA1CTL1 = UCSSEL0 | UCSSEL1;
-		
-		/* Setup baud rate low byte. */
-		UCA1BR0 = ( unsigned portCHAR ) ( ulBaudRateCount & ( unsigned long ) 0xff );
-
-		/* Setup baud rate high byte. */
+		U0ME |= UTXE0 + URXE0; 
+		UCTL0 |= CHAR;        // 8-bit character
+		UTCTL0 |= (SSEL1+SSEL0);	// UCLK = MCLK
+		UBR00 = ( unsigned portCHAR ) ( ulBaudRateCount & ( unsigned long ) 0xff );
 		ulBaudRateCount >>= 8UL;
-		UCA1BR1 = ( unsigned portCHAR ) ( ulBaudRateCount & ( unsigned long ) 0xff );
-
-		/* UCLISTEN sets loopback mode! */
-		UCA1STAT = UCLISTEN;
-
-		/* Enable interrupts. */
-		UCA1IE |= UCRXIE;
+		UBR10 = ( unsigned portCHAR ) ( ulBaudRateCount & ( unsigned long ) 0xff );
 		
-		/* Take out of reset. */
-		UCA1CTL1 &= ~UCSWRST;
-		#endif
-		P3SEL |= BIT7 + BIT6;        
-		P3DIR &= ~BIT7;              // P3.7：USCI_A1 RXD
-		P3DIR |= BIT6;               // P3.6：USCI_A1 TXD
-		UCTL1 &= ~SYNC;        // CLK = MCLK
-		//UBR01 = 0X34;              // 16MHz-9600 
-		UBR01 = ( unsigned portCHAR ) ( ulBaudRateCount & ( unsigned long ) 0xff );
-		//UBR11 = 0x00;              // 65+3*256=833   
-		ulBaudRateCount >>= 8UL;
-		UBR11 = ( unsigned portCHAR ) ( ulBaudRateCount & ( unsigned long ) 0xff );
-		UTCTL1 = (SSEL0 | SSEL1);// Modulation UCBRSx = 2
-		UCTL1 &= ~SWRST;        // Initialize USCI state machine
-		U1IE |= URXIE1;           // 允许接收中断
+		UMCTL0 = 0x00; 		// 6MHz 115200 modulation
+		UCTL0 &= ~SWRST;        // Initialize USCI state machine
+		U0IE |= URXIE0;           // 允许接收中断
 	}
 	portEXIT_CRITICAL();
-	
 	/* Note the comments at the top of this file about this not being a generic
 	UART driver. */
+	
 	return NULL;
 }
 /*-----------------------------------------------------------*/
@@ -178,8 +154,7 @@ signed portBASE_TYPE xReturn;
 	then enable the UART Tx interrupt, just in case UART transmission has already
 	completed and switched itself off. */
 	xReturn = xQueueSend( xCharsForTx, &cOutChar, xBlockTime );
-	//UCA1IE |= UCTXIE;
-	U1IE |= UTXIE1;   
+	U0IE |= UTXIE0;   
 	return xReturn;
 }
 /*-----------------------------------------------------------*/
@@ -191,33 +166,50 @@ of the DMA.  Or, as a minimum, transmission and reception could use a simple
 RAM ring buffer, and synchronise with a task using a semaphore when a complete
 message has been received or transmitted. */
 static void
-__attribute__((__interrupt__(UART1RX_VECTOR)))
+__attribute__((__interrupt__(UART0RX_VECTOR)))
 prvUSCI_A1_ISR( void )
 {
 signed char cChar;
 portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
 
-	if( ( U1IFG & URXIFG1 ) != 0 )
+	if( ( U0IFG & URXIFG0 ) != 0 )
 	{
 		/* Get the character from the UART and post it on the queue of Rxed
 		characters. */
-		cChar = RXBUF1;
+		cChar = RXBUF0;
 		xQueueSendFromISR( xRxedChars, &cChar, &xHigherPriorityTaskWoken );
 	}	
-	else if( ( U1IFG & UTXIFG1 ) != 0 )
+	__bic_SR_register_on_exit( SCG1 + SCG0 + OSCOFF + CPUOFF );
+	
+	/* If writing to a queue caused a task to unblock, and the unblocked task
+	has a priority equal to or above the task that this interrupt interrupted,
+	then lHigherPriorityTaskWoken will have been set to pdTRUE internally within
+	xQueuesendFromISR(), and portEND_SWITCHING_ISR() will ensure that this
+	interrupt returns directly to the higher priority unblocked task. 
+	
+	THIS MUST BE THE LAST THING DONE IN THE ISR. */	
+	portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
+}
+static void
+__attribute__((__interrupt__(UART0TX_VECTOR)))
+prvUSCI_A2_ISR( void )
+{
+signed char cChar;
+portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
+	if( ( U0IFG & UTXIFG0 ) != 0 )
 	{
 		/* The previous character has been transmitted.  See if there are any
 		further characters waiting transmission. */
 		if( xQueueReceiveFromISR( xCharsForTx, &cChar, &xHigherPriorityTaskWoken ) == pdTRUE )
 		{
 			/* There was another character queued - transmit it now. */
-			TXBUF1 = cChar;
+			TXBUF0 = cChar;
 		}
 		else
 		{
 			/* There were no other characters to transmit - disable the Tx
 			interrupt. */
-			U1IE &= ~UTXIE1;
+			U0IE &= ~UTXIE0;
 		}
 	}
 	
@@ -245,6 +237,7 @@ void puts(char *s) {
 	// Loops through each character in string 's'
 	while (c = *s++) {
 		xSerialPutChar(NULL,c,serNO_BLOCK);
+		
 	}
 }
 /**

@@ -86,7 +86,7 @@
 #define configLFXT_CLOCK_HZ       		( 32768L )
 #define configTICK_RATE_HZ				( ( portTickType ) 1000 )
 #define configMAX_PRIORITIES			( ( unsigned portBASE_TYPE ) 5 )
-#define configTOTAL_HEAP_SIZE			( ( size_t ) ( 2 * 1024 - 162 ) )
+#define configTOTAL_HEAP_SIZE			( ( size_t ) ( 2 * 1024 - 216 ) )
 #define configMAX_TASK_NAME_LEN			( 10 )
 #define configUSE_TRACE_FACILITY		0
 #define configUSE_16_BIT_TICKS			1

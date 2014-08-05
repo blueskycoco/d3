@@ -282,12 +282,14 @@ void main( void )
 	prvSetupHardware();
 	/* Create the queue used by tasks and interrupts to send strings to the LCD
 	task. */
+	
 	xLCDQueue = xQueueCreate( mainQUEUE_LENGTH, sizeof( xQueueMessage ) );
 
 	/* If the queue could not be created then don't create any tasks that might
 	attempt to use the queue. */
 	if( xLCDQueue != NULL )
 	{
+	
 		/* Create the standard demo tasks. */
 	//	vAltStartComTestTasks( mainCOM_TEST_PRIORITY, mainCOM_TEST_BAUD_RATE, mainCOM_TEST_LED );
 	//	vStartDynamicPriorityTasks();
@@ -318,6 +320,7 @@ void main( void )
 
 		/* Start the scheduler. */
 		vTaskStartScheduler();
+		
 	}
 
 	/* If all is well then this line will never be reached.  If it is reached
@@ -354,15 +357,15 @@ unsigned char ucLine = 1;
 	the objects they are going to use.  */
 	vTaskDelay( mainTIMER_TEST_PERIOD * 10 );
 	sprintf( cBuffer, "%d heap free", ( int ) xPortGetFreeHeapSize() );
-	halLcdPrintLine( cBuffer, ucLine, OVERWRITE_TEXT );
+	//halLcdPrintLine( cBuffer, ucLine, OVERWRITE_TEXT );
 	ucLine++;
 	
 	sprintf( cBuffer, "MSPGCC %lu", ( unsigned long ) __MSPGCC__ );
-	halLcdPrintLine( cBuffer, ucLine, OVERWRITE_TEXT );
+	//halLcdPrintLine( cBuffer, ucLine, OVERWRITE_TEXT );
 	ucLine++;
 
 #if __MSP430X__ & (__MSP430_CPUX_TARGET_SR20__ | __MSP430_CPUX_TARGET_ISR20__)
-	halLcdPrintLine( "++with 20-bit++", ucLine, OVERWRITE_TEXT );
+	//halLcdPrintLine( "++with 20-bit++", ucLine, OVERWRITE_TEXT );
 	ucLine++;
 
 	sprintf( cBuffer, "ma%02d mc%02d md%02d",
@@ -384,7 +387,7 @@ unsigned char ucLine = 1;
 			 16
 #endif /* -md20 */
 			 );
-	halLcdPrintLine( cBuffer, ucLine, OVERWRITE_TEXT );
+//	halLcdPrintLine( cBuffer, ucLine, OVERWRITE_TEXT );
 	ucLine++;
 #endif /* -msr20 */
 
@@ -392,12 +395,13 @@ unsigned char ucLine = 1;
 	parameter contains its expected value. */
 	if( pvParameters != mainTASK_PARAMETER_CHECK_VALUE )
 	{
-		halLcdPrintLine( "Invalid parameter", ucLine, OVERWRITE_TEXT );
+//		halLcdPrintLine( "Invalid parameter", ucLine, OVERWRITE_TEXT );
 		ucLine++;		
 	}
 
 	for( ;; )
 	{
+		TXBUF0='l';
 		/* Wait for a message to be received.  Using portMAX_DELAY as the block
 		time will result in an indefinite wait provided INCLUDE_vTaskSuspend is
 		set to 1 in FreeRTOSConfig.h, therefore there is no need to check the
@@ -408,7 +412,7 @@ unsigned char ucLine = 1;
 		/* Clear the LCD if no room remains for any more text output. */
 		if( ucLine > mainMAX_LCD_LINES )
 		{
-			halLcdClearScreen();
+		//	halLcdClearScreen();
 			ucLine = 0;
 		}
 		
@@ -449,7 +453,7 @@ unsigned char ucLine = 1;
 		/* Output the message that was placed into the cBuffer array within the
 		switch statement above, then move onto the next line ready for the next
 		message to arrive on the queue. */
-		halLcdPrintLine( cBuffer, ucLine,  OVERWRITE_TEXT );
+	//	halLcdPrintLine( cBuffer, ucLine,  OVERWRITE_TEXT );
 		ucLine++;
 	}
 }
@@ -490,6 +494,7 @@ xQueueMessage xMessage;
 	top of this file. */
 	for( ;; )
 	{
+		TXBUF0='b';
 		/* Check the button state. */
 		ucState = ( halButtonsPressed() & BUTTON_UP );
 		
@@ -499,7 +504,7 @@ xQueueMessage xMessage;
 			ucState = pdTRUE;
 		}
 		
-		if( ucState != ucLastState )
+		//if( ucState != ucLastState )
 		{
 			/* The state has changed, send a message to the LCD task. */
 			xMessage.cMessageID = mainMESSAGE_BUTTON_UP;
@@ -579,6 +584,7 @@ static xQueueMessage xStatusMessage = { .cMessageID=mainMESSAGE_STATUS, .xMessag
 
 static void prvSetupHardware( void )
 {
+#if 1
 	taskDISABLE_INTERRUPTS();
 	
 	/* Disable the watchdog. */
@@ -598,16 +604,38 @@ static void prvSetupHardware( void )
 	the tick interrupt.  If the backlight is required, then change either the
 	halLCD library or vApplicationSetupTimerInterrupt() to use a different
 	timer.  Timer A1 is used for the run time stats time base6. */
-	halLcdInit();
-	halLcdSetContrast( 100 );
-	halLcdClearScreen();
+	//halLcdInit();
+	//halLcdSetContrast( 100 );
+	//halLcdClearScreen();
 	
-	xSerialPortInitMinimal( 115200, comBUFFER_LEN );
-	printf("we are in main\r\n");
-	halLcdPrintLine( " www.FreeRTOS.org", 0,  OVERWRITE_TEXT );
+	xSerialPortInitMinimal(115200, comBUFFER_LEN );
+	
+	//	printf("we are in main\r\n");
+	//printf("we are in main\r\n");
+	//halLcdPrintLine( " www.FreeRTOS.org", 0,  OVERWRITE_TEXT );
+	#else
+	volatile unsigned int i;  
+	WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT  
+	P3SEL |= 0x30;                            // P3.4,5 = USART0 TXD/RXD  
+	BCSCTL1 &= ~XT2OFF;                       // XT2on  
+	do  {  
+		IFG1 &= ~OFIFG;                           // Clear OSCFault flag  
+		for (i = 0xFF; i > 0; i--);               // Time for flag to set  
+	 }  while ((IFG1 & OFIFG));                   // OSCFault flag still set?  
+	BCSCTL2 |= SELM_2 + SELS;                 // MCLK = SMCLK = XT2 (safe)  
+	ME1 |= UTXE0 + URXE0;                     // Enable USART0 TXD/RXD  
+	UCTL0 |= CHAR;                            // 8-bit character  
+	UTCTL0 |= SSEL1;                          // UCLK = SMCLK  
+	UBR00 = 0x34;                             // 8MHz 115200  
+	UBR10 = 0x00;                             // 8MHz 115200  
+	UMCTL0 = 0x00;                            // 8MHz 115200 modulation  
+	UCTL0 &= ~SWRST;                          // Initialize USART state machine  
+	IE1 |= URXIE0;                            // Enable USART0 RX interrupt  
+	_BIS_SR(LPM0_bits + GIE);                 // Enter LPM0 w/ interrupt
+	while(1);
+	#endif
 }
 /*-----------------------------------------------------------*/
-
 
 void vApplicationTickHook( void )
 {

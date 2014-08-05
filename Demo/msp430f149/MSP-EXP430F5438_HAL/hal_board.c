@@ -35,6 +35,14 @@ void halBoardInit(void)
   P6OUT = 0;
   P6DIR = 0xFF;
   P6SEL = 0;
+
+	P6SEL &= ~0x10;
+	P6DIR |= 0x10;
+	P6OUT &= ~0x10;
+	P6OUT |= 0x10;
+
+	P3SEL |= BIT4 + BIT5;        
+
 }
 
 /**********************************************************************//**
@@ -48,7 +56,6 @@ void hal430SetSystemClock(unsigned long req_clock_rate, unsigned long ref_clock_
     unsigned char i = 0, j = 0, Error = 0;
     
     BCSCTL1 &= ~XT2OFF;
-    //BCSCTL3 |= XT2S1;
     do
     {   
         j++;
@@ -62,7 +69,7 @@ void hal430SetSystemClock(unsigned long req_clock_rate, unsigned long ref_clock_
         Error = 0;
     }
     while((IFG1&OFIFG));    // 判断XT2是否已经稳定
-    BCSCTL2 |= SELM_2+SELS+DIVS_1; // 切换XT2为MCLK,SMCLK的时钟源 ,SMCLK2分频
+    BCSCTL2 |= SELM_2+SELS+DIVS_0; // 切换XT2为MCLK,SMCLK的时钟源 ,SMCLK2分频
     
     return ;
 }
