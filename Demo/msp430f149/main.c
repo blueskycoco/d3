@@ -161,9 +161,25 @@
 /* Codes sent within messages to the LCD task so the LCD task can interpret
 exactly what the message it just received was.  These are sent in the
 cMessageID member of the message structure (defined below). */
-#define mainMESSAGE_BUTTON_UP			( 1 )
-#define mainMESSAGE_BUTTON_SEL			( 2 )
+//#define mainMESSAGE_BUTTON_UP			( 1 )
+//#define mainMESSAGE_BUTTON_SEL			( 2 )
 #define mainMESSAGE_STATUS				( 3 )
+
+#define mainMESSAGE_BUTTON_MATL 	4
+#define mainMESSAGE_BUTTON_HARD 	5
+#define mainMESSAGE_BUTTON_DIREC 	6
+#define mainMESSAGE_BUTTON_TIMES 	7
+#define mainMESSAGE_BUTTON_SAVE 	8
+#define mainMESSAGE_BUTTON_UP 	9
+#define mainMESSAGE_BUTTON_DEL 	10
+#define mainMESSAGE_BUTTON_AVE 	11
+#define mainMESSAGE_BUTTON_LEFT 	12
+#define mainMESSAGE_BUTTON_MENU 	13
+#define mainMESSAGE_BUTTON_RIGHT 	14
+#define mainMESSAGE_BUTTON_BACKLIGHT 15
+#define mainMESSAGE_BUTTON_ESC 	16
+#define mainMESSAGE_BUTTON_DOWN 	17
+#define mainMESSAGE_BUTTON_ENTER 	18
 
 /* When the cMessageID member of the message sent to the LCD task is
 mainMESSAGE_STATUS then these definitions are sent in the ulMessageValue member
@@ -431,7 +447,7 @@ printf("Invalid parameter\r\n");
 												sprintf( cBuffer, "Button up = %d", ( int ) xReceivedMessage.ulMessageValue );
 												break;
 
-			case mainMESSAGE_BUTTON_SEL		:	/* The select button interrupt
+			case mainMESSAGE_BUTTON_MATL		:	/* The select button interrupt
 												just informed this task that the
 												select button has been pressed.
 												In this case the pointer to the 
@@ -511,7 +527,7 @@ xQueueMessage xMessage;
 			ucState = pdTRUE;
 		}
 		
-		//if( ucState != ucLastState )
+		if( ucState != ucLastState )
 		{
 			/* The state has changed, send a message to the LCD task. */
 			xMessage.cMessageID = mainMESSAGE_BUTTON_UP;
@@ -674,14 +690,14 @@ __attribute__((__interrupt__(PORT2_VECTOR)))
 prvSelectButtonInterrupt( void )
 {
 /* Define the message sent to the LCD task from this interrupt. */
-static const xQueueMessage xMessage = { .cMessageID=mainMESSAGE_BUTTON_SEL, .pcMessageValue="Select Interrupt" };
+static const xQueueMessage xMessage = { .cMessageID=mainMESSAGE_BUTTON_UP, .pcMessageValue="Select Interrupt" };
 portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
 
 	/* This is the interrupt handler for the joystick select button input.
 	The button has been pushed, write a message to the LCD via the LCD task. */
 	xQueueSendFromISR( xLCDQueue, &xMessage, &xHigherPriorityTaskWoken );
 
-	P2IFG = 0;
+	//P2IFG = 0;
 	
 	/* If writing to xLCDQueue caused a task to unblock, and the unblocked task
 	has a priority equal to or above the task that this interrupt interrupted,
