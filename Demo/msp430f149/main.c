@@ -165,21 +165,21 @@ cMessageID member of the message structure (defined below). */
 //#define mainMESSAGE_BUTTON_SEL			( 2 )
 #define mainMESSAGE_STATUS				( 3 )
 
-#define mainMESSAGE_BUTTON_MATL 	4
-#define mainMESSAGE_BUTTON_HARD 	5
-#define mainMESSAGE_BUTTON_DIREC 	6
-#define mainMESSAGE_BUTTON_TIMES 	7
-#define mainMESSAGE_BUTTON_SAVE 	8
-#define mainMESSAGE_BUTTON_UP 	9
-#define mainMESSAGE_BUTTON_DEL 	10
-#define mainMESSAGE_BUTTON_AVE 	11
-#define mainMESSAGE_BUTTON_LEFT 	12
-#define mainMESSAGE_BUTTON_MENU 	13
-#define mainMESSAGE_BUTTON_RIGHT 	14
-#define mainMESSAGE_BUTTON_BACKLIGHT 15
-#define mainMESSAGE_BUTTON_ESC 	16
-#define mainMESSAGE_BUTTON_DOWN 	17
-#define mainMESSAGE_BUTTON_ENTER 	18
+#define mainMESSAGE_BUTTON_MATL 	0x7fff
+#define mainMESSAGE_BUTTON_HARD 	0xf7ff
+#define mainMESSAGE_BUTTON_DIREC 	0xff7f
+#define mainMESSAGE_BUTTON_TIMES 	0xfff7
+#define mainMESSAGE_BUTTON_SAVE 	0xbfff
+#define mainMESSAGE_BUTTON_UP 	0xfbff
+#define mainMESSAGE_BUTTON_DEL 	0xffbf
+#define mainMESSAGE_BUTTON_AVE 	0xfffb
+#define mainMESSAGE_BUTTON_LEFT 	0xdfff
+#define mainMESSAGE_BUTTON_MENU 	0xfdff
+#define mainMESSAGE_BUTTON_RIGHT 	0xffdf
+#define mainMESSAGE_BUTTON_BACKLIGHT 0xfffd
+#define mainMESSAGE_BUTTON_ESC 	0xefff
+#define mainMESSAGE_BUTTON_DOWN 	0xfeff
+#define mainMESSAGE_BUTTON_ENTER 	0xffef
 
 /* When the cMessageID member of the message sent to the LCD task is
 mainMESSAGE_STATUS then these definitions are sent in the ulMessageValue member
@@ -280,7 +280,7 @@ static xTimerHandle xCheckTimer = NULL;
 task. */
 typedef struct
 {
-	char cMessageID;				/* << States what the message is. */
+	short cMessageID;				/* << States what the message is. */
 	/** States the message value (can be an integer, string pointer, etc. depending on the value of cMessageID). */
 	union {
 		portBASE_TYPE xMessageValue;
@@ -407,7 +407,7 @@ unsigned char ucLine = 1;
 #endif /* -md20 */
 			 );
 //	halLcdPrintLine( cBuffer, ucLine, OVERWRITE_TEXT );
-printf("%s\r\n",cBuffer);
+	printf("%s\r\n",cBuffer);
 	ucLine++;
 #endif /* -msr20 */
 
@@ -415,8 +415,8 @@ printf("%s\r\n",cBuffer);
 	parameter contains its expected value. */
 	if( pvParameters != mainTASK_PARAMETER_CHECK_VALUE )
 	{
-//		halLcdPrintLine( "Invalid parameter", ucLine, OVERWRITE_TEXT );
-printf("Invalid parameter\r\n");
+		//		halLcdPrintLine( "Invalid parameter", ucLine, OVERWRITE_TEXT );
+		printf("Invalid parameter\r\n");
 		ucLine++;		
 	}
 
@@ -444,9 +444,94 @@ printf("Invalid parameter\r\n");
 												informed this task that the up
 												button on the joystick input has
 												been pressed or released. */
-												sprintf( cBuffer, "Button up = %d", ( int ) xReceivedMessage.ulMessageValue );
+												sprintf( cBuffer, "Button up = %x", ( int ) xReceivedMessage.ulMessageValue );
 												break;
-
+			case mainMESSAGE_BUTTON_MATL		:	/* The button poll task has just
+												informed this task that the up
+												button on the joystick input has
+												been pressed or released. */
+												sprintf( cBuffer, "Button matl = %x", ( int ) xReceivedMessage.ulMessageValue );
+												break;
+			case mainMESSAGE_BUTTON_HARD		:	/* The button poll task has just
+												informed this task that the up
+												button on the joystick input has
+												been pressed or released. */
+												sprintf( cBuffer, "Button hard = %x", ( int ) xReceivedMessage.ulMessageValue );
+												break;
+			case mainMESSAGE_BUTTON_DIREC		:	/* The button poll task has just
+												informed this task that the up
+												button on the joystick input has
+												been pressed or released. */
+												sprintf( cBuffer, "Button direc = %x", ( int ) xReceivedMessage.ulMessageValue );
+												break;
+			case mainMESSAGE_BUTTON_TIMES		:	/* The button poll task has just
+												informed this task that the up
+												button on the joystick input has
+												been pressed or released. */
+												sprintf( cBuffer, "Button times = %x", ( int ) xReceivedMessage.ulMessageValue );
+												break;
+			case mainMESSAGE_BUTTON_SAVE		:	/* The button poll task has just
+												informed this task that the up
+												button on the joystick input has
+												been pressed or released. */
+												sprintf( cBuffer, "Button save = %x", ( int ) xReceivedMessage.ulMessageValue );
+												break;
+			case mainMESSAGE_BUTTON_DEL		:	/* The button poll task has just
+												informed this task that the up
+												button on the joystick input has
+												been pressed or released. */
+												sprintf( cBuffer, "Button del = %x", ( int ) xReceivedMessage.ulMessageValue );
+												break;
+			case mainMESSAGE_BUTTON_AVE		:	/* The button poll task has just
+												informed this task that the up
+												button on the joystick input has
+												been pressed or released. */
+												sprintf( cBuffer, "Button ave = %x", ( int ) xReceivedMessage.ulMessageValue );
+												break;
+			case mainMESSAGE_BUTTON_LEFT		:	/* The button poll task has just
+												informed this task that the up
+												button on the joystick input has
+												been pressed or released. */
+												sprintf( cBuffer, "Button left = %x", ( int ) xReceivedMessage.ulMessageValue );
+												break;
+			case mainMESSAGE_BUTTON_MENU		:	/* The button poll task has just
+												informed this task that the up
+												button on the joystick input has
+												been pressed or released. */
+												sprintf( cBuffer, "Button menu = %x", ( int ) xReceivedMessage.ulMessageValue );
+												break;
+			case mainMESSAGE_BUTTON_RIGHT		:	/* The button poll task has just
+												informed this task that the up
+												button on the joystick input has
+												been pressed or released. */
+												sprintf( cBuffer, "Button right = %x", ( int ) xReceivedMessage.ulMessageValue );
+												break;
+			case mainMESSAGE_BUTTON_BACKLIGHT		:	/* The button poll task has just
+												informed this task that the up
+												button on the joystick input has
+												been pressed or released. */
+												sprintf( cBuffer, "Button backligth = %x", ( int ) xReceivedMessage.ulMessageValue );
+												break;
+			case mainMESSAGE_BUTTON_ESC		:	/* The button poll task has just
+												informed this task that the up
+												button on the joystick input has
+												been pressed or released. */
+												sprintf( cBuffer, "Button esc = %x", ( int ) xReceivedMessage.ulMessageValue );
+												break;
+			case mainMESSAGE_BUTTON_DOWN		:	/* The button poll task has just
+												informed this task that the up
+												button on the joystick input has
+												been pressed or released. */
+												sprintf( cBuffer, "Button down = %x", ( int ) xReceivedMessage.ulMessageValue );
+												break;
+			case mainMESSAGE_BUTTON_ENTER		:	/* The button poll task has just
+												informed this task that the up
+												button on the joystick input has
+												been pressed or released. */
+												sprintf( cBuffer, "Button enter = %x", ( int ) xReceivedMessage.ulMessageValue );
+												break;
+												
+#if 0
 			case mainMESSAGE_BUTTON_MATL		:	/* The select button interrupt
 												just informed this task that the
 												select button has been pressed.
@@ -458,7 +543,7 @@ printf("Invalid parameter\r\n");
 												communication technique. */
 												sprintf( cBuffer, "%s", ( char * ) xReceivedMessage.pcMessageValue );
 												break;
-												
+												#endif
 			case mainMESSAGE_STATUS			:	/* The tick interrupt hook
 												function has just informed this
 												task of the system status.
@@ -517,28 +602,29 @@ xQueueMessage xMessage;
 	for( ;; )
 	{
 		
-		printf("prvButtonPollTask\r\n");
+		
 		/* Check the button state. */
 		ucState = halButtonsPressed();//( halButtonsPressed() & BUTTON_UP );
 		
-		if( ucState != 0 )
-		{
+		//if( ucState != 0 )
+		//{
 			/* The button was pressed. */
-			ucState = pdTRUE;
-		}
+		//	ucState = pdTRUE;
+		//}
 		
-		if( ucState != ucLastState )
+		if( ucState != ucLastState && ucState!=0xffff)
 		{
 			/* The state has changed, send a message to the LCD task. */
-			xMessage.cMessageID = mainMESSAGE_BUTTON_UP;
+			xMessage.cMessageID = ucState;
 			xMessage.ulMessageValue = ( unsigned long ) ucState;
 			ucLastState = ucState;
+			printf("prvButtonPollTask %x pressed\r\n",ucState);
 			xQueueSend( xLCDQueue, &xMessage, portMAX_DELAY );
 		}
 		
 		/* Block for 10 milliseconds so this task does not utilise all the CPU
 		time and debouncing of the button is not necessary. */
-		vTaskDelay( 10 / portTICK_RATE_MS );
+		vTaskDelay( 1 / portTICK_RATE_MS );
 	}
 }
 /*-----------------------------------------------------------*/
@@ -618,7 +704,7 @@ static void prvSetupHardware( void )
 //	LFXT_Start( XT1DRIVE_0 );
 	hal430SetSystemClock( configCPU_CLOCK_HZ, configLFXT_CLOCK_HZ );
 
-	halButtonsInit( BUTTON_ALL );
+	halButtonsInit();
 	//halButtonsInterruptEnable( BUTTON_SELECT );
 
 	/* Initialise the LCD, but note that the backlight is not used as the
@@ -690,14 +776,14 @@ __attribute__((__interrupt__(PORT2_VECTOR)))
 prvSelectButtonInterrupt( void )
 {
 /* Define the message sent to the LCD task from this interrupt. */
-static const xQueueMessage xMessage = { .cMessageID=mainMESSAGE_BUTTON_UP, .pcMessageValue="Select Interrupt" };
+static const xQueueMessage xMessage = { .cMessageID=mainMESSAGE_BUTTON_MATL, .pcMessageValue="Select Interrupt" };
 portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
 
 	/* This is the interrupt handler for the joystick select button input.
 	The button has been pushed, write a message to the LCD via the LCD task. */
 	xQueueSendFromISR( xLCDQueue, &xMessage, &xHigherPriorityTaskWoken );
 
-	//P2IFG = 0;
+	P2IFG = 0;
 	
 	/* If writing to xLCDQueue caused a task to unblock, and the unblocked task
 	has a priority equal to or above the task that this interrupt interrupted,

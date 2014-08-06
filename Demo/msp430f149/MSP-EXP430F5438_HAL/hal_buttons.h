@@ -15,14 +15,6 @@
 #define BUTTON_PORT_IFG   P4IFG
 #define BUTTON_PORT_IN    P4IN
 
-#define BUTTON_SELECT     BIT3
-#define BUTTON_DOWN       BIT2
-#define BUTTON_UP         BIT1
-#define BUTTON_RIGHT      BIT0
-#define BUTTON_LEFT       BIT1 
-#define BUTTON_S1         BIT6 
-#define BUTTON_S2         BIT7 
-#define BUTTON_ALL        0xFE
 
 #define BUTTON_MATL 	0x7fff
 #define BUTTON_HARD 	0xf7ff
