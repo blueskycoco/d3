@@ -594,7 +594,7 @@ static void prvGenerateStatusMessage( char *pcBuffer, unsigned long ulStatusValu
 
 static void prvButtonPollTask( void *pvParameters )
 {
-unsigned short ucLastState = pdFALSE, ucState;
+unsigned short ucState;
 xQueueMessage xMessage;
 
 	/* This tasks performs the button polling functionality as described at the
@@ -604,27 +604,21 @@ xQueueMessage xMessage;
 		
 		
 		/* Check the button state. */
-		ucState = halButtonsPressed();//( halButtonsPressed() & BUTTON_UP );
+		ucState = halButtonsPressed();
 		
-		//if( ucState != 0 )
-		//{
-			/* The button was pressed. */
-		//	ucState = pdTRUE;
-		//}
-		
-		if( ucState != ucLastState && ucState!=0xffff)
+		if(ucState!=0xffff)
 		{
 			/* The state has changed, send a message to the LCD task. */
 			xMessage.cMessageID = ucState;
 			xMessage.ulMessageValue = ( unsigned long ) ucState;
-			ucLastState = ucState;
+			//ucLastState = ucState;
 			printf("prvButtonPollTask %x pressed\r\n",ucState);
 			xQueueSend( xLCDQueue, &xMessage, portMAX_DELAY );
 		}
 		
 		/* Block for 10 milliseconds so this task does not utilise all the CPU
 		time and debouncing of the button is not necessary. */
-		vTaskDelay( 1 / portTICK_RATE_MS );
+		vTaskDelay( 10 / portTICK_RATE_MS );
 	}
 }
 /*-----------------------------------------------------------*/
@@ -793,7 +787,29 @@ portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
 	portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
 }
 /*-----------------------------------------------------------*/
-
+static void
+__attribute__((__interrupt__(NMI_VECTOR)))
+prvNMIInterrupt( void )
+{
+static unsigned char flag=0;
+if((IFG1&NMIIFG)==NMIIFG)
+{
+	//RST/NMI≤ªø…∆¡±Œ÷–∂œ
+	IFG1 &= ~NMIIFG;
+	if(flag==0){
+		flag=1;
+		printf("going to sleep\r\n");
+		__bis_SR_register( LPM1_bits + GIE );
+		}
+	else
+		{
+		flag=0;
+		__bic_SR_register_on_exit( SCG1 + SCG0 + OSCOFF + CPUOFF );
+		portYIELD_FROM_ISR( pdFALSE );
+		printf("wakeup from sleep\r\n");
+		}
+}
+}
 /* The MSP430X port uses this callback function to configure its tick interrupt.
 This allows the application to choose the tick interrupt source.
 configTICK_VECTOR must also be set in FreeRTOSConfig.h to the correct
