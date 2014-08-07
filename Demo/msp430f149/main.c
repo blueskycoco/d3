@@ -798,13 +798,13 @@ if((IFG1&NMIIFG)==NMIIFG)
 	if(flag==0){
 		flag=1;
 		printf("going to sleep\r\n");
-		//__bis_SR_register( LPM1_bits + GIE );
+		__bis_SR_register( LPM4_bits + GIE );
 		}
 	else
 		{
 		flag=0;
 		printf("wakeup from sleep 1\r\n");
-		//__bic_SR_register_on_exit( SCG1 + SCG0 + OSCOFF + CPUOFF );
+		__bic_SR_register_on_exit( SCG1 + SCG0 + OSCOFF + CPUOFF );
 		portYIELD_FROM_ISR( pdFALSE );
 		printf("wakeup from sleep 2\r\n");
 		}
