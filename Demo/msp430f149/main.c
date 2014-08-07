@@ -298,7 +298,6 @@ void main( void )
 	prvSetupHardware();
 	/* Create the queue used by tasks and interrupts to send strings to the LCD
 	task. */
-	
 	xLCDQueue = xQueueCreate( mainQUEUE_LENGTH, sizeof( xQueueMessage ) );
 
 	/* If the queue could not be created then don't create any tasks that might
@@ -422,7 +421,6 @@ unsigned char ucLine = 1;
 
 	for( ;; )
 	{
-		printf("prvLCDTask \r\n");
 		/* Wait for a message to be received.  Using portMAX_DELAY as the block
 		time will result in an indefinite wait provided INCLUDE_vTaskSuspend is
 		set to 1 in FreeRTOSConfig.h, therefore there is no need to check the
@@ -437,6 +435,7 @@ unsigned char ucLine = 1;
 			ucLine = 0;
 		}
 		
+		printf("\r\nprvLCDTask \r\n");
 		/* What is this message?  What does it contain? */
 		switch( xReceivedMessage.cMessageID )
 		{
@@ -612,7 +611,7 @@ xQueueMessage xMessage;
 			xMessage.cMessageID = ucState;
 			xMessage.ulMessageValue = ( unsigned long ) ucState;
 			//ucLastState = ucState;
-			printf("prvButtonPollTask %x pressed\r\n",ucState);
+			printf("\r\nprvButtonPollTask\r\n%x pressed\r\n",ucState);
 			xQueueSend( xLCDQueue, &xMessage, portMAX_DELAY );
 		}
 		
@@ -691,7 +690,7 @@ static void prvSetupHardware( void )
 	taskDISABLE_INTERRUPTS();
 	
 	/* Disable the watchdog. */
-	WDTCTL = WDTPW + WDTHOLD;
+	WDTCTL = WDTPW + WDTHOLD+WDTNMI;
   
 	halBoardInit();
 
@@ -713,8 +712,7 @@ static void prvSetupHardware( void )
 	
 	xSerialPortInitMinimal(115200, comBUFFER_LEN );
 	
-	printf("we are in main\r\n");
-	//printf("we are in main\r\n");
+	printf("www.FreeRTOS.org\r\n");
 	//halLcdPrintLine( " www.FreeRTOS.org", 0,  OVERWRITE_TEXT );
 	#else
 	volatile unsigned int i;  
@@ -792,6 +790,7 @@ __attribute__((__interrupt__(NMI_VECTOR)))
 prvNMIInterrupt( void )
 {
 static unsigned char flag=0;
+printf("NMI intr\r\n");
 if((IFG1&NMIIFG)==NMIIFG)
 {
 	//RST/NMI≤ªø…∆¡±Œ÷–∂œ
@@ -804,9 +803,10 @@ if((IFG1&NMIIFG)==NMIIFG)
 	else
 		{
 		flag=0;
+		printf("wakeup from sleep 1\r\n");
 		__bic_SR_register_on_exit( SCG1 + SCG0 + OSCOFF + CPUOFF );
 		portYIELD_FROM_ISR( pdFALSE );
-		printf("wakeup from sleep\r\n");
+		printf("wakeup from sleep 2\r\n");
 		}
 }
 }
@@ -849,7 +849,8 @@ void vApplicationIdleHook( void )
 {
 	/* Called on each iteration of the idle task.  In this case the idle task
 	just enters a low(ish) power mode. */
-	__bis_SR_register( LPM1_bits + GIE );
+	printf("vApplicationIdleHook\r\n");
+	__bis_SR_register( LPM3_bits + GIE );
 }
 /*-----------------------------------------------------------*/
 
