@@ -690,7 +690,7 @@ static void prvSetupHardware( void )
 	taskDISABLE_INTERRUPTS();
 	
 	/* Disable the watchdog. */
-	WDTCTL = WDTPW + WDTHOLD+WDTNMI;
+	WDTCTL = WDTPW + WDTHOLD+WDTNMI+WDTNMIES;
   
 	halBoardInit();
 
@@ -798,16 +798,17 @@ if((IFG1&NMIIFG)==NMIIFG)
 	if(flag==0){
 		flag=1;
 		printf("going to sleep\r\n");
-		__bis_SR_register( LPM1_bits + GIE );
+		//__bis_SR_register( LPM1_bits + GIE );
 		}
 	else
 		{
 		flag=0;
 		printf("wakeup from sleep 1\r\n");
-		__bic_SR_register_on_exit( SCG1 + SCG0 + OSCOFF + CPUOFF );
+		//__bic_SR_register_on_exit( SCG1 + SCG0 + OSCOFF + CPUOFF );
 		portYIELD_FROM_ISR( pdFALSE );
 		printf("wakeup from sleep 2\r\n");
 		}
+	IE1 |= NMIIE;
 }
 }
 /* The MSP430X port uses this callback function to configure its tick interrupt.
@@ -849,7 +850,7 @@ void vApplicationIdleHook( void )
 {
 	/* Called on each iteration of the idle task.  In this case the idle task
 	just enters a low(ish) power mode. */
-	printf("vApplicationIdleHook\r\n");
+	//printf("vApplicationIdleHook\r\n");
 	__bis_SR_register( LPM3_bits + GIE );
 }
 /*-----------------------------------------------------------*/
